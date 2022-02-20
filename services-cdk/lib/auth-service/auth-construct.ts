@@ -1,3 +1,5 @@
+import { HttpApi, HttpMethod } from "@aws-cdk/aws-apigatewayv2-alpha";
+import { HttpLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-alpha";
 import {
   App,
   aws_cognito as cognito,
@@ -52,6 +54,29 @@ export class AuthServiceStack extends Stack {
     new CfnOutput(this, "userPoolClientId", {
       value: authUserPoolClient.userPoolClientId,
       description: "Auth Service userPoolClientId",
+    });
+
+    //
+
+    const authApi = new lambda.NodejsFunction(this, "authApi", {
+      entry: path.join(__dirname, `/functions/auth-api.ts`),
+    });
+
+    const authHttpApi = new HttpApi(this, "authHttpApi", {
+      corsPreflight: {
+        allowOrigins: ["*"],
+      },
+    });
+
+    authHttpApi.addRoutes({
+      path: "/auth",
+      methods: [HttpMethod.POST],
+      integration: new HttpLambdaIntegration("authApiIntegration", authApi),
+    });
+
+    new CfnOutput(this, "apiEndpoint", {
+      value: authHttpApi.apiEndpoint,
+      description: "Auth Service apiEndpoint",
     });
   }
 }
