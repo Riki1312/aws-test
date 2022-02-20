@@ -1,14 +1,27 @@
+import * as path from "path";
 import * as cdk from "aws-cdk-lib";
-import { aws_s3 as s3 } from "aws-cdk-lib";
+import {
+  aws_cognito as cognito,
+  aws_lambda_nodejs as lambda,
+} from "aws-cdk-lib";
 
 export class HelloCdkStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    new s3.Bucket(this, "MyFirstBucket", {
-      versioned: true,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
+    const authChallengeFn = new lambda.NodejsFunction(this, "authChallengeFn", {
+      ru
+    });
+
+    new cognito.UserPool(this, "authUserPool", {
+      selfSignUpEnabled: false,
+      signInCaseSensitive: true,
+      signInAliases: {
+        email: true,
+      },
+      lambdaTriggers: {
+        defineAuthChallenge: authChallengeFn,
+      },
     });
   }
 }
