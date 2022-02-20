@@ -2,6 +2,7 @@ import {
   App,
   aws_cognito as cognito,
   aws_lambda_nodejs as lambda,
+  CfnOutput,
   Stack,
   StackProps,
 } from "aws-cdk-lib";
@@ -27,12 +28,10 @@ export class AuthServiceStack extends Stack {
       entry: path.join(__dirname, `/functions/define-auth-challenge.ts`),
     });
 
-    new cognito.UserPool(this, "authUserPool", {
+    const authUserPool = new cognito.UserPool(this, "authUserPool", {
       selfSignUpEnabled: false,
       signInCaseSensitive: true,
-      signInAliases: {
-        email: true,
-      },
+      signInAliases: { email: true },
       lambdaTriggers: {
         preSignUp: preSignUp,
         postAuthentication: postAuthentication,
@@ -40,6 +39,19 @@ export class AuthServiceStack extends Stack {
         verifyAuthChallengeResponse: verifyAuthChallenge,
         defineAuthChallenge: defineAuthChallenge,
       },
+    });
+
+    const authUserPoolClient = authUserPool.addClient("userPoolClient", {
+      authFlows: { custom: true },
+    });
+
+    new CfnOutput(this, "userPoolId", {
+      value: authUserPool.userPoolId,
+      description: "Auth Service userPoolId",
+    });
+    new CfnOutput(this, "userPoolClientId", {
+      value: authUserPoolClient.userPoolClientId,
+      description: "Auth Service userPoolClientId",
     });
   }
 }
