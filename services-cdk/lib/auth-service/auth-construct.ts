@@ -15,16 +15,16 @@ export class AuthServiceStack extends Stack {
       entry: path.join(__dirname, `/functions/pre-sign-up.ts`),
     });
     const postAuthentication = new lambda.NodejsFunction(this, "postAuthentication", {
-      entry: "/functions/post-authentication.ts",
+      entry: path.join(__dirname, `/functions/post-authentication.ts`),
     });
     const createAuthChallenge = new lambda.NodejsFunction(this, "createAuthChallenge", {
-      entry: "/functions/create-auth-challenge.ts",
+      entry: path.join(__dirname, `/functions/create-auth-challenge.ts`),
     });
     const verifyAuthChallenge = new lambda.NodejsFunction(this, "verifyAuthChallenge", {
-      entry: "/functions/verify-auth-challenge.ts",
+      entry: path.join(__dirname, `/functions/verify-auth-challenge.ts`),
     });
     const defineAuthChallenge = new lambda.NodejsFunction(this, "defineAuthChallenge", {
-      entry: "/functions/define-auth-challenge.ts",
+      entry: path.join(__dirname, `/functions/define-auth-challenge.ts`),
     });
 
     new cognito.UserPool(this, "authUserPool", {
