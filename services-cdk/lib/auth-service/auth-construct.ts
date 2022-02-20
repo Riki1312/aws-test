@@ -5,13 +5,14 @@ import {
   Stack,
   StackProps,
 } from "aws-cdk-lib";
+import * as path from "path";
 
 export class AuthServiceStack extends Stack {
   constructor(scope: App, id: string, props?: StackProps) {
     super(scope, id, props);
 
     const preSignUp = new lambda.NodejsFunction(this, "preSignUp", {
-      entry: "/functions/pre-sign-up.ts",
+      entry: path.join(__dirname, `/functions/pre-sign-up.ts`),
     });
     const postAuthentication = new lambda.NodejsFunction(this, "postAuthentication", {
       entry: "/functions/post-authentication.ts",
