@@ -60,6 +60,10 @@ export class AuthServiceStack extends Stack {
 
     const authApi = new lambda.NodejsFunction(this, "authApi", {
       entry: path.join(__dirname, `/functions/auth-api.ts`),
+      environment: {
+        USER_POOL_ID: authUserPool.userPoolId,
+        CLIENT_ID: authUserPoolClient.userPoolClientId,
+      },
     });
 
     const authHttpApi = new HttpApi(this, "authHttpApi", {
