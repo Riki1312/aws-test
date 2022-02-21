@@ -1,4 +1,4 @@
-import { APIGatewayProxyEventV2, APIGatewayProxyResultV2, Context } from "aws-lambda";
+import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
 import { CognitoIdentityServiceProvider } from "aws-sdk";
 import { randomBytes } from "crypto";
 import { env } from "process";
@@ -10,6 +10,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
 
   let email = "";
 
+  // Validate input data.
   if (event.body) {
     let body = JSON.parse(event.body);
 

@@ -15,6 +15,8 @@ export class AuthServiceStack extends Stack {
   constructor(scope: App, id: string, props?: StackProps) {
     super(scope, id, props);
 
+    // UserPool setup.
+
     const preSignUp = new lambda.NodejsFunction(this, "preSignUp", {
       entry: path.join(__dirname, `/functions/pre-sign-up.ts`),
     });
@@ -32,9 +34,23 @@ export class AuthServiceStack extends Stack {
     });
 
     const authUserPool = new cognito.UserPool(this, "authUserPool", {
-      selfSignUpEnabled: false,
-      signInCaseSensitive: true,
+      selfSignUpEnabled: true,
+      signInCaseSensitive: false,
       signInAliases: { email: true },
+      standardAttributes: {
+        email: {
+          required: true,
+          mutable: true,
+        },
+        givenName: {
+          required: false,
+          mutable: true,
+        },
+        familyName: {
+          required: false,
+          mutable: true,
+        },
+      },
       lambdaTriggers: {
         preSignUp: preSignUp,
         postAuthentication: postAuthentication,
@@ -57,7 +73,7 @@ export class AuthServiceStack extends Stack {
       description: "Auth Service userPoolClientId",
     });
 
-    //
+    // HttpApi setup.
 
     const authApi = new lambda.NodejsFunction(this, "authApi", {
       entry: path.join(__dirname, `/functions/auth-api.ts`),
