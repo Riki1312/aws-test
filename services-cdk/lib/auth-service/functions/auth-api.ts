@@ -21,6 +21,11 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         body: "Email required",
       };
     }
+  } else {
+    return {
+      statusCode: 400,
+      body: "Body required",
+    };
   }
 
   // Check if the user exists.
