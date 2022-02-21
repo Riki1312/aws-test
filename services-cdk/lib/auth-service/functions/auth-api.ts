@@ -47,27 +47,22 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
         ],
       })
       .promise();
-  } else if (listUsers.Users && listUsers.Users.length > 0) {
-    // User already exists: initiate auth.
-    const authResponse = await identityService
-      .adminInitiateAuth({
-        UserPoolId: env.USER_POOL_ID!,
-        ClientId: env.CLIENT_ID!,
-        AuthFlow: "CUSTOM_AUTH",
-        AuthParameters: {
-          USERNAME: email,
-        },
-      })
-      .promise();
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(authResponse),
-    };
   }
 
+  // User already exists: initiate auth.
+  const authResponse = await identityService
+    .adminInitiateAuth({
+      UserPoolId: env.USER_POOL_ID!,
+      ClientId: env.CLIENT_ID!,
+      AuthFlow: "CUSTOM_AUTH",
+      AuthParameters: {
+        USERNAME: email,
+      },
+    })
+    .promise();
+
   return {
-    statusCode: 500,
-    body: "Unknown error",
+    statusCode: 200,
+    body: JSON.stringify(authResponse),
   };
 };
