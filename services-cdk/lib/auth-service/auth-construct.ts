@@ -3,6 +3,7 @@ import { HttpLambdaIntegration } from "@aws-cdk/aws-apigatewayv2-integrations-al
 import {
   App,
   aws_cognito as cognito,
+  aws_iam as iam,
   aws_lambda_nodejs as lambda,
   CfnOutput,
   Stack,
@@ -65,6 +66,17 @@ export class AuthServiceStack extends Stack {
         CLIENT_ID: authUserPoolClient.userPoolClientId,
       },
     });
+
+    authApi.role?.attachInlinePolicy(
+      new iam.Policy(this, "userPoolPolicy", {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ["cognito-idp:AdminInitiateAuth"],
+            resources: [authUserPool.userPoolArn],
+          }),
+        ],
+      })
+    );
 
     const authHttpApi = new HttpApi(this, "authHttpApi", {
       corsPreflight: {
