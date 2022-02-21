@@ -71,7 +71,11 @@ export class AuthServiceStack extends Stack {
       new iam.Policy(this, "userPoolPolicy", {
         statements: [
           new iam.PolicyStatement({
-            actions: ["cognito-idp:AdminInitiateAuth"],
+            actions: [
+              "cognito-idp:ListUsers",
+              "cognito-idp:SignUp",
+              "cognito-idp:AdminInitiateAuth",
+            ],
             resources: [authUserPool.userPoolArn],
           }),
         ],
