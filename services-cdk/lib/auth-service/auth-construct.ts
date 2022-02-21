@@ -33,17 +33,6 @@ export class AuthServiceStack extends Stack {
       entry: path.join(__dirname, `/functions/define-auth-challenge.ts`),
     });
 
-    createAuthChallenge.role?.attachInlinePolicy(
-      new iam.Policy(this, "authChallengePolicy", {
-        statements: [
-          new iam.PolicyStatement({
-            actions: ["ses:SendEmail", "ses:SendRawEmail"],
-            resources: ["*"],
-          }),
-        ],
-      })
-    );
-
     const authUserPool = new cognito.UserPool(this, "authUserPool", {
       selfSignUpEnabled: true,
       signInCaseSensitive: false,
@@ -75,6 +64,27 @@ export class AuthServiceStack extends Stack {
       authFlows: { custom: true },
     });
 
+    postAuthentication.role?.attachInlinePolicy(
+      new iam.Policy(this, "postAuthenticationPolicy", {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ["cognito-idp:AdminUpdateUserAttributes"],
+            resources: [authUserPool.userPoolArn],
+          }),
+        ],
+      })
+    );
+    createAuthChallenge.role?.attachInlinePolicy(
+      new iam.Policy(this, "authChallengePolicy", {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ["ses:SendEmail", "ses:SendRawEmail"],
+            resources: ["*"],
+          }),
+        ],
+      })
+    );
+
     new CfnOutput(this, "userPoolId", {
       value: authUserPool.userPoolId,
       description: "Auth Service userPoolId",
@@ -86,15 +96,22 @@ export class AuthServiceStack extends Stack {
 
     // HttpApi setup.
 
-    const authApi = new lambda.NodejsFunction(this, "authApi", {
-      entry: path.join(__dirname, `/functions/auth-api.ts`),
+    const authPostApi = new lambda.NodejsFunction(this, "authApi", {
+      entry: path.join(__dirname, `/functions/auth-post-api.ts`),
+      environment: {
+        USER_POOL_ID: authUserPool.userPoolId,
+        CLIENT_ID: authUserPoolClient.userPoolClientId,
+      },
+    });
+    const authPutApi = new lambda.NodejsFunction(this, "authPutApi", {
+      entry: path.join(__dirname, `/functions/auth-put-api.ts`),
       environment: {
         USER_POOL_ID: authUserPool.userPoolId,
         CLIENT_ID: authUserPoolClient.userPoolClientId,
       },
     });
 
-    authApi.role?.attachInlinePolicy(
+    authPostApi.role?.attachInlinePolicy(
       new iam.Policy(this, "userPoolPolicy", {
         statements: [
           new iam.PolicyStatement({
@@ -103,6 +120,16 @@ export class AuthServiceStack extends Stack {
               "cognito-idp:SignUp",
               "cognito-idp:AdminInitiateAuth",
             ],
+            resources: [authUserPool.userPoolArn],
+          }),
+        ],
+      })
+    );
+    authPutApi.role?.attachInlinePolicy(
+      new iam.Policy(this, "authPutApiUserPoolPolicy", {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ["cognito-idp:AdminRespondToAuthChallenge"],
             resources: [authUserPool.userPoolArn],
           }),
         ],
@@ -118,7 +145,12 @@ export class AuthServiceStack extends Stack {
     authHttpApi.addRoutes({
       path: "/auth",
       methods: [HttpMethod.POST],
-      integration: new HttpLambdaIntegration("authApiIntegration", authApi),
+      integration: new HttpLambdaIntegration("authApiIntegration", authPostApi),
+    });
+    authHttpApi.addRoutes({
+      path: "/auth",
+      methods: [HttpMethod.PUT],
+      integration: new HttpLambdaIntegration("authPutApiIntegration", authPutApi),
     });
 
     new CfnOutput(this, "apiEndpoint", {
