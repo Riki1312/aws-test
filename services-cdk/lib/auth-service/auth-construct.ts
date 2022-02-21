@@ -33,6 +33,17 @@ export class AuthServiceStack extends Stack {
       entry: path.join(__dirname, `/functions/define-auth-challenge.ts`),
     });
 
+    createAuthChallenge.role?.attachInlinePolicy(
+      new iam.Policy(this, "authChallengePolicy", {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ["ses:SendEmail", "ses:SendRawEmail"],
+            resources: ["*"],
+          }),
+        ],
+      })
+    );
+
     const authUserPool = new cognito.UserPool(this, "authUserPool", {
       selfSignUpEnabled: true,
       signInCaseSensitive: false,

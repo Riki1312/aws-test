@@ -39,11 +39,14 @@ export const handler: CreateAuthChallengeTriggerHandler = async (event) => {
 
 async function sendEmail(emailAddress: string, secretLoginCode: string) {
   const params: SES.SendEmailRequest = {
+    Source: "info@bewond.com",
     Destination: { ToAddresses: [emailAddress] },
     Message: {
+      Subject: {
+        Data: "Your secret login code",
+      },
       Body: {
         Html: {
-          Charset: "UTF-8",
           Data: `
             <html><body>
               <p>This is your secret login code:</p>
@@ -52,16 +55,10 @@ async function sendEmail(emailAddress: string, secretLoginCode: string) {
           `,
         },
         Text: {
-          Charset: "UTF-8",
           Data: `Your secret login code: ${secretLoginCode}`,
         },
       },
-      Subject: {
-        Charset: "UTF-8",
-        Data: "Your secret login code",
-      },
     },
-    Source: "no-reply@verificationemail.com",
   };
 
   await ses.sendEmail(params).promise();
