@@ -38,7 +38,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<APIGateway
       .signUp({
         ClientId: env.CLIENT_ID!,
         Username: email,
-        Password: randomBytes(64).toString("hex"),
+        Password: randomBytes(64).toString("base64"),
         UserAttributes: [
           {
             Name: "email",
